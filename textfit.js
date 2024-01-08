@@ -18,7 +18,7 @@ const styles = css`
     z-index: 999;
     overflow: visible;
     background: red;
-    text-shadow: 0 1 px rgb(255 0 0 / var(--glass-text-shadow-opacity, 80%));
+    text-shadow: 0 1 px rgb(255 0 0 / 80%);
   }
   &[data-overflow] *,
   [data-overflow] * {
@@ -26,14 +26,13 @@ const styles = css`
   }
   &[data-overflow]:after,
   [data-overflow]:after {
-    font-family: "Noto Sans", sans-serif;
+    font-family: sans-serif;
     content: attr(data-overflow);
-    background-color: #000;
+    background-color: #111;
     border-radius: 0;
     box-sizing: border-box;
     color: white;
     display: block;
-    font-size: 0.8em;
     font-weight: 400;
     line-height: 1em;
     padding: 0.3em 0.5em 0.5em 0.5em;
@@ -42,6 +41,7 @@ const styles = css`
     top: 0;
     z-index: 2;
     width: 100%;
+    font-size: 0.7em;
   }
 `;
 
@@ -58,7 +58,7 @@ customElements.define(
         "display-overflow-error",
         "font-unit",
         "debounce-time",
-        "grow-in-height",
+        "dont-grow-in-height",
         "disable-dynamic-font-size",
         "max-font-size",
         "min-font-size",
@@ -89,10 +89,10 @@ customElements.define(
       this.debounceTime = parseInt(this.getAttribute("debounce-time")) || 0;
       this.observer = false;
       this.overflow = false;
-      this.growInHeight = Boolean(this.hasAttribute("grow-in-height")) || true;
+      this.dontGrowInHeight = Boolean(this.hasAttribute("dont-grow-in-height")) || false;
       this.widthOnly = Boolean(this.hasAttribute("width-only")) || false;
       this.maxFontSize = parseFloat(this.getAttribute("max-font-size")) || 100;
-      this.minFontSize = parseFloat(this.getAttribute("min-font-size")) || 50;
+      this.minFontSize = parseFloat(this.getAttribute("min-font-size")) || 20;
       this.fontUnit = this.getAttribute("font-unit") || "%";
       this.overflow = false;
 
@@ -103,7 +103,7 @@ customElements.define(
           fontUnit: this.fontUnit,
           widthOnly: this.widthOnly,
           maxLines: this.maxLines,
-          growInHeight: this.growInHeight,
+          growInHeight: !this.dontGrowInHeight,
           maxHeight: this.maxHeight,
         });
       }
