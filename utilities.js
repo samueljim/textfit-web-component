@@ -144,6 +144,7 @@ export const detectBoundingOverflow = (element, container) => ({
 
 export const checkOverflow = (element, maxHeightMode) => {
   if (maxHeightMode === "parent") {
+    // Check if this element is larger than its parent height. 
     let scrollHeight = Math.ceil(element.scrollHeight);
     element.dataset.calculatedScrollHeight = scrollHeight;
     if (scrollHeight > Math.ceil(getHeight(element.parentElement))) {
@@ -151,6 +152,7 @@ export const checkOverflow = (element, maxHeightMode) => {
     }
     return false
   } else if (maxHeightMode === "outerbox") {
+    // Check if this is elements bounding box is larger than its parent bounding box.
     if (element.parentNode) {
       let boundingBox = detectBoundingOverflow(element, element.parentNode);
       if (boundingBox.collidedBottom) {
@@ -159,6 +161,7 @@ export const checkOverflow = (element, maxHeightMode) => {
     }
     return false
   } else if (maxHeightMode === "innerbox") {
+    // Check if any of the children elements bounding box is larger than the element. 
     if (element.childNodes) {
       return element.childNodes.some((child) => {
         let boundingBox = detectBoundingOverflow(child, element);
@@ -169,6 +172,7 @@ export const checkOverflow = (element, maxHeightMode) => {
     }
     return false
   } else if (maxHeightMode === "css") {
+    // Check that the max scrollHeight is not larger than the css max height set on the element.
     let scrollHeight = Math.ceil(element.scrollHeight);
     element.dataset.calculatedScrollHeight = scrollHeight;
     const computedBlockStyle = window.getComputedStyle(element);
@@ -184,6 +188,7 @@ export const checkOverflow = (element, maxHeightMode) => {
     }
     return false
   } else if (maxHeightMode === "self" || isNaN(maxHeightMode)) {
+    // Check that the max scrollHeight is not larger than its measured height. 
     let scrollHeight = Math.ceil(element.scrollHeight);
     element.dataset.calculatedScrollHeight = scrollHeight;
     if (scrollHeight > Math.ceil(getHeight(element))) {
@@ -191,6 +196,7 @@ export const checkOverflow = (element, maxHeightMode) => {
     }
     return false
   } else {
+    // assume it is a number and use it as the max height
     let scrollHeight = Math.ceil(element.scrollHeight);
     element.dataset.calculatedScrollHeight = scrollHeight;
     if (scrollHeight > Math.ceil(maxHeightMode)) {
