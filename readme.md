@@ -3,7 +3,7 @@
 This package only needs to be imported once as web components extend the HTML object. You can use this just like a `div` or `h1` tag after you import the module
 
 ```html
-<script type="module">import "./node-modules/textfit-web-component/textfit.js"</script>
+<script type="module">import "./node_modules/textfit-web-component/textfit.js"</script>
 
 <body>
     <div>
