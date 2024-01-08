@@ -52,8 +52,6 @@ export const limiter = (el, settings) => {
   high = settings.maxFontSize || 100;
   // if there is no width then stop. it's not loaded yet
   if (isNaN(originalWidth)) return false;
-  // if there is only width then just width only as that's better than nothing
-  if (isNaN(originalHeight)) settings.widthOnly = true;
 
   fontSize = low;
 
@@ -66,7 +64,6 @@ export const limiter = (el, settings) => {
       el.classList.add(growInHeight);
     }
     const scrollWidth = getWidth(el) <= originalWidth;
-    const scrollHeight = settings.widthOnly || getHeight(el) <= originalHeight;
     el.classList.remove(growInHeight);
 
     // check if too many lines and if it is then we need to adjust the font size accordingly
@@ -78,7 +75,7 @@ export const limiter = (el, settings) => {
     if (settings.maxHeight && !fontSizeTooLarge) {
       fontSizeTooLarge = checkOverflow(el, settings.maxHeight);
     }
-    if (scrollWidth && scrollHeight && !fontSizeTooLarge) {
+    if (scrollWidth && !fontSizeTooLarge) {
       fontSize = mid;
       low = mid + 0.01; // set font size to larger
     } else {

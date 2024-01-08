@@ -55,7 +55,6 @@ customElements.define(
       this.observer = false;
       this.overflow = false;
       this.dontGrowInHeight = Boolean(this.hasAttribute("dont-grow-in-height")) || false;
-      this.widthOnly = Boolean(this.hasAttribute("width-only")) || false;
       this.maxFontSize = parseFloat(this.getAttribute("max-font-size")) || 100;
       this.minFontSize = parseFloat(this.getAttribute("min-font-size")) || 20;
       this.fontUnit = this.getAttribute("font-unit") || "%";
@@ -66,7 +65,6 @@ customElements.define(
           maxFontSize: this.maxFontSize,
           minFontSize: this.minFontSize,
           fontUnit: this.fontUnit,
-          widthOnly: this.widthOnly,
           maxLines: this.maxLines,
           growInHeight: !this.dontGrowInHeight,
           maxHeight: this.maxHeight,

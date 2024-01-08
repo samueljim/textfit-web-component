@@ -1,4 +1,8 @@
+[![textfitting example](https://i.ibb.co/Hx8PLV6/demo.gif)](https://textfit.page.bne.sh/)
+
 # textfit
+
+[![npm version](https://badge.fury.io/js/textfit-web-component.svg)](https://badge.fury.io/js/textfit-web-component)
 
 This package only needs to be imported once as web components extend the HTML object. You can use this just like a `div` or `h1` tag after you import the module
 
@@ -6,6 +10,8 @@ This package only needs to be imported once as web components extend the HTML ob
 
 ```html
 <script type="module">import "./node_modules/textfit-web-component/textfit.js"</script>
+<!-- or -->
+<script type="module" src="https://cdn.jsdelivr.net/npm/textfit-web-component@1.0/textfit.js"></script>
 
 <body>
     <div>
@@ -46,7 +52,6 @@ const ReactComponent = () => {
 | debounce-time | The amount of time in milliseconds that the resize event should be debounced by | 0 |
 | dont-grow-in-height | Prevent the element from getting larger than its initial size. This can create problems as if you resize the initial size will become the current size meaning it'll never grow in size | false |
 | disable-dynamic-font-size | Disable the dynamic font size and only use this for line counting | false |
-| width-only | Don't do any element height when counting the lines. This could fix some bugs depending on your situation. | false |
 
 ## Advanced examples 🫶
 
@@ -110,6 +115,16 @@ You can also pass in a integer in order to set a manual max height
         max height is 300px 
     </text-fit>
 </div>
+```
+
+you can use both max-height and max-lines together. This will allow you to set a max height and then have the text fit into that max height by reducing the font size. This is useful if you want to have a title that is a maximum of 3 lines but also stays withing the bounds of the parent element.
+
+```html
+<h2 style="background: red; height: 50vh; ">
+  <text-fit max-lines="3" max-font-size="2000" max-height='parent' >
+  hey there i am samuel
+  </text-fit>
+</h2>
 ```
 
 if you just want to use textfit for line counting you can disable the font resizing with the `disable-dynamic-font-size` prop
