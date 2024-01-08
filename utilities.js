@@ -141,3 +141,61 @@ export const detectBoundingOverflow = (element, container) => ({
         return getRect(element).right - getRect(container).right;
     },
 });
+
+export const checkOverflow = (element, maxHeightMode) => {
+  if (maxHeightMode === "parent") {
+    let scrollHeight = Math.ceil(element.scrollHeight);
+    element.dataset.calculatedScrollHeight = scrollHeight;
+    if (scrollHeight > Math.ceil(getHeight(element.parentElement))) {
+      return true
+    }
+    return false
+  } else if (maxHeightMode === "outerbox") {
+    if (element.parentNode) {
+      let boundingBox = detectBoundingOverflow(element, element.parentNode);
+      if (boundingBox.collidedBottom) {
+        return true
+      }
+    }
+    return false
+  } else if (maxHeightMode === "innerbox") {
+    if (element.childNodes) {
+      return element.childNodes.some((child) => {
+        let boundingBox = detectBoundingOverflow(child, element);
+        if (boundingBox.collidedBottom) {
+          return true
+        }
+      });
+    }
+    return false
+  } else if (maxHeightMode === "css") {
+    let scrollHeight = Math.ceil(element.scrollHeight);
+    element.dataset.calculatedScrollHeight = scrollHeight;
+    const computedBlockStyle = window.getComputedStyle(element);
+    const maxHeight = parseFloat(computedBlockStyle.maxHeight);
+    if (!maxHeight) {
+      console.warn(
+        element,
+        "There needs to be a max height set on the element if you want to use a CSS mode limiter"
+      );
+    }
+    if (scrollHeight > Math.ceil(maxHeight)) {
+      return true
+    }
+    return false
+  } else if (maxHeightMode === "self" || isNaN(maxHeightMode)) {
+    let scrollHeight = Math.ceil(element.scrollHeight);
+    element.dataset.calculatedScrollHeight = scrollHeight;
+    if (scrollHeight > Math.ceil(getHeight(element))) {
+      return true
+    }
+    return false
+  } else {
+    let scrollHeight = Math.ceil(element.scrollHeight);
+    element.dataset.calculatedScrollHeight = scrollHeight;
+    if (scrollHeight > Math.ceil(maxHeightMode)) {
+      return true
+    }
+    return false
+  }
+}

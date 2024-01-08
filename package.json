@@ -1,0 +1,22 @@
+{
+  "name": "textfit-web-component",
+  "version": "1.0.1",
+  "description": "Framework agnostic text fitting web component that can be used to ensure that a number of lines of text is rendered on screen by reducing or increasing font size and also help users detect and handle text with overflows",
+  "main": "textfit.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module",
+  "keywords": [
+    "textfit",
+    "line",
+    "count",
+    "limiter",
+    "overflow",
+    "resize",
+    "font",
+    "sizing"
+  ],
+  "author": "samueljim",
+  "license": "ISC"
+}
