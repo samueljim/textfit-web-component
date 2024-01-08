@@ -42,6 +42,7 @@ const ReactComponent = () => {
 | min-font-size | The minimum allowed font size that the resizing can set to | 20 |
 | font-unit | The unit that the font size should be set to. This can be any valid css unit | % |
 | classname | The class name that should be applied to the element | undefined |
+| display-overflow-error | If the text is too large to fit in the element then this will display an error message in the element. great for debugging | false |
 | debounce-time | The amount of time in milliseconds that the resize event should be debounced by | 0 |
 | dont-grow-in-height | Prevent the element from getting larger than its initial size. This can create problems as if you resize the initial size will become the current size meaning it'll never grow in size | false |
 | disable-dynamic-font-size | Disable the dynamic font size and only use this for line counting | false |
