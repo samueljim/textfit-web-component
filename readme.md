@@ -36,13 +36,13 @@ const ReactComponent = () => {
 
 | Props    | Description | Default value |
 |----------|-----|-----|
-| max-lines | The maximum number of lines that should be allowed to be rendered. This will reduce until it hits the minimum font size. | undefined |
-| max-height | The maximum that the element should be allowed to be before the font size gets reduced. The possible values are `parent`, `outerbox`, `innerbox`, `css`, `self`, `200` or `true` | undefined |
+| max-lines | The maximum number of lines that should be allowed to be rendered. The font size will reduce until it hits the minimum font size. | undefined |
+| max-height | The maximum that the element should be allowed to be before the font size gets reduced. The possible values are `parent`, `outerbox`, `innerbox`, `css`, `self`, or a integer in pixels. The font size will reduce until it fits or the min font size is hit | undefined |
 | max-font-size | The maximum allowed font size that the resizing can set to | 100 |
 | min-font-size | The minimum allowed font size that the resizing can set to | 20 |
 | font-unit | The unit that the font size should be set to. This can be any valid css unit | % |
 | classname | The class name that should be applied to the element | undefined |
-| display-overflow-error | If the text is too large to fit in the element then this will display an error message in the element. great for debugging | false |
+| log-overflow-error | If the text is too large to fit in the element then it will log an error message for debugging | false |
 | debounce-time | The amount of time in milliseconds that the resize event should be debounced by | 0 |
 | dont-grow-in-height | Prevent the element from getting larger than its initial size. This can create problems as if you resize the initial size will become the current size meaning it'll never grow in size | false |
 | disable-dynamic-font-size | Disable the dynamic font size and only use this for line counting | false |
