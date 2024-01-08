@@ -1,10 +1,10 @@
 import { css } from "https://cdn.skypack.dev/@emotion/css";
-import { getHeight, getWidth, detectBoundingOverflow } from "./utilities.js";
+import { getHeight, getWidth, detectBoundingOverflow, checkOverflow } from "./utilities.js";
 import { limiter } from "./limiter.js";
 import { lineCount } from "./line-count.js";
 import debounce from "./debounce.js";
 
-const OVERFLOW_MESSAGE = 'More content has been added than space allows'
+const OVERFLOW_MESSAGE = "More content has been added than space allows";
 
 const styles = css`
   display: block;
@@ -72,120 +72,77 @@ customElements.define(
      */
     runValidation(e) {
       this.done = false;
-      
+
       if (this.observer) {
         this.observer.disconnect();
       }
       this.maxLines = parseInt(this.getAttribute("max-lines")) || false;
       // should the font size be dynamic. This can be turned off if the user just wants to use overflow and line counting features
-      this.dynamicFontSize = !this.hasAttribute("disable-dynamic-font-size") || true;
+      this.dynamicFontSize =
+        !this.hasAttribute("disable-dynamic-font-size") || true;
       // should the overflow error be displayed over the element to let the user know there is an issue with the content
-      this.displayOverflowError = this.hasAttribute("display-overflow-error") || false;
+      this.displayOverflowError =
+        this.hasAttribute("display-overflow-error") || false;
       // the max height to allow the element to grow to before it is considered to be overflowing or textfit needs to happen. This supports a few dynamic values as well as pixel values
       this.maxHeight = this.getAttribute("max-height") || false;
       // how long to wait before running the validation
       this.debounceTime = parseInt(this.getAttribute("debounce-time")) || 0;
       this.observer = false;
       this.overflow = false;
-      this.growInHeight = Boolean(this.hasAttribute("grow-in-height")) || false;
+      this.growInHeight = Boolean(this.hasAttribute("grow-in-height")) || true;
       this.widthOnly = Boolean(this.hasAttribute("width-only")) || false;
       this.maxFontSize = parseFloat(this.getAttribute("max-font-size")) || 100;
       this.minFontSize = parseFloat(this.getAttribute("min-font-size")) || 50;
       this.fontUnit = this.getAttribute("font-unit") || "%";
       this.overflow = false;
 
+      if (this.dynamicFontSize) {
+        this.fontSize = limiter(this, {
+          maxFontSize: this.maxFontSize,
+          minFontSize: this.minFontSize,
+          fontUnit: this.fontUnit,
+          widthOnly: this.widthOnly,
+          maxLines: this.maxLines,
+          growInHeight: this.growInHeight,
+          maxHeight: this.maxHeight,
+        });
+      }
+
       if (this.maxLines) {
         let count = lineCount(this);
         this.dataset.lineCount = count.lineCount;
         if (count.lineCount > this.maxLines) {
           if (this.maxLines == 1) {
-            this.overflow = 'There can only be a single line of content here';
+            this.overflow = "There can only be a single line of content here";
           } else {
             this.overflow = `There can't be more than ${this.maxLines} lines of content here`;
           }
         }
       }
 
-      if (this.dynamicFontSize) {
-        this.fontSize = limiter(this, {
-            maxFontSize: this.maxFontSize,
-            minFontSize: this.minFontSize,
-            fontUnit: this.fontUnit,
-            widthOnly: this.widthOnly,
-            maxLines: this.maxLines,
-            growInHeight: this.growInHeight,
-          });
-      }
-
-    //   if (this.maxHeight) {
-        if (this.maxHeight === "parent") {
-          let scrollHeight = Math.ceil(this.scrollHeight);
-          this.dataset.calculatedScrollHeight = scrollHeight;
-          if (scrollHeight > Math.ceil(getHeight(this.parentElement))) {
-            this.overflow = OVERFLOW_MESSAGE;
-          }
-        } else if (this.maxHeight === "outerbox") {
-          if (this.parentNode) {
-            let boundingBox = detectBoundingOverflow(this, this.parentNode);
-            if (boundingBox.collidedBottom) {
-              this.overflow = OVERFLOW_MESSAGE;
-            }
-          }
-        } else if (this.maxHeight === "innerbox") {
-          if (this.childNodes) {
-            this.childNodes.forEach((child) => {
-              let boundingBox = detectBoundingOverflow(child, this);
-              if (boundingBox.collidedBottom) {
-                this.overflow = OVERFLOW_MESSAGE;
-              }
-            });
-          }
-        } else if (this.maxHeight === "css") {
-          let scrollHeight = Math.ceil(this.scrollHeight);
-          this.dataset.calculatedScrollHeight = scrollHeight;
-          const computedBlockStyle = window.getComputedStyle(this);
-          const maxHeight = parseFloat(computedBlockStyle.maxHeight);
-          if (!maxHeight) {
-            console.warn(
-              this,
-              "There needs to be a max height set on the element if you want to use a CSS mode limiter"
-            );
-          }
-          if (scrollHeight > Math.ceil(maxHeight)) {
-            this.overflow = OVERFLOW_MESSAGE;
-          }
-        } else if (this.maxHeight === "self" || isNaN(this.maxHeight)) {
-          let scrollHeight = Math.ceil(this.scrollHeight);
-          this.dataset.calculatedScrollHeight = scrollHeight;
-          if (scrollHeight > Math.ceil(getHeight(this))) {
-            this.overflow = OVERFLOW_MESSAGE;
-          }
-        } else {
-          let scrollHeight = Math.ceil(this.scrollHeight);
-          this.dataset.calculatedScrollHeight = scrollHeight;
-          if (scrollHeight > Math.ceil(this.maxHeight)) {
-            this.overflow = OVERFLOW_MESSAGE;
-          }
+      if (this.maxHeight) {
+        if (checkOverflow(this, this.maxHeight)) {
+          this.overflow = OVERFLOW_MESSAGE;
         }
-    //   }
+      }
 
       if (this.overflow && this.displayOverflowError) {
         console.warn(this.overflow);
-          this.dataset.overflow = this.overflow;
+        this.dataset.overflow = this.overflow;
       } else {
         delete this.dataset.overflow;
       }
 
-    this.observer = new MutationObserver(
+      this.observer = new MutationObserver(
         this.debounceTime > 0
-        ? debounce(() => {
-            this.runValidation();
+          ? debounce(() => {
+              this.runValidation();
             }, this.debounceTime)
-        : () => {
-            this.runValidation();
+          : () => {
+              this.runValidation();
             }
-    );
-    this.observer.observe(this, {
+      );
+      this.observer.observe(this, {
         attributes: true,
         childList: true,
         subtree: true,
