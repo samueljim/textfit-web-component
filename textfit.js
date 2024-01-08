@@ -4,45 +4,10 @@ import { limiter } from "./limiter.js";
 import { lineCount } from "./line-count.js";
 import debounce from "./debounce.js";
 
-const OVERFLOW_MESSAGE = "More content has been added than space allows";
-
 const styles = css`
   display: block;
   overflow-wrap: break-word;
   position: relative;
-  &[data-overflow],
-  [data-overflow] {
-    color: white !important;
-    border: none;
-    box-shadow: 0 0 0 3px black;
-    z-index: 999;
-    overflow: visible;
-    background: red;
-    text-shadow: 0 1 px rgb(255 0 0 / 80%);
-  }
-  &[data-overflow] *,
-  [data-overflow] * {
-    color: white !important;
-  }
-  &[data-overflow]:after,
-  [data-overflow]:after {
-    font-family: sans-serif;
-    content: attr(data-overflow);
-    background-color: #111;
-    border-radius: 0;
-    box-sizing: border-box;
-    color: white;
-    display: block;
-    font-weight: 400;
-    line-height: 1em;
-    padding: 0.3em 0.5em 0.5em 0.5em;
-    position: absolute;
-    left: 0;
-    top: 0;
-    z-index: 2;
-    width: 100%;
-    font-size: 0.7em;
-  }
 `;
 
 customElements.define(
@@ -81,8 +46,8 @@ customElements.define(
       this.dynamicFontSize =
         !this.hasAttribute("disable-dynamic-font-size") || true;
       // should the overflow error be displayed over the element to let the user know there is an issue with the content
-      this.displayOverflowError =
-        this.hasAttribute("display-overflow-error") || false;
+      this.logOverflowError =
+        this.hasAttribute("log-overflow-error") || false;
       // the max height to allow the element to grow to before it is considered to be overflowing or textfit needs to happen. This supports a few dynamic values as well as pixel values
       this.maxHeight = this.getAttribute("max-height") || false;
       // how long to wait before running the validation
@@ -122,15 +87,12 @@ customElements.define(
 
       if (this.maxHeight) {
         if (checkOverflow(this, this.maxHeight)) {
-          this.overflow = OVERFLOW_MESSAGE;
+          this.overflow = "More content has been added than space allows";
         }
       }
 
-      if (this.overflow && this.displayOverflowError) {
-        console.warn(this.overflow);
-        this.dataset.overflow = this.overflow;
-      } else {
-        delete this.dataset.overflow;
+      if (this.overflow && this.logOverflowError) {
+        console.warn(this, this.overflow);
       }
 
       this.observer = new MutationObserver(
