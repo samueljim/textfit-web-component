@@ -24,10 +24,6 @@ export const getHeight = (el) => {
     );
     height = height - paddingTop - paddingBottom - borderTop - borderBottom;
   }
-  // el.dataset.calculatedHeight = height; // adds property for debugging
-  // if (Math.ceil(height) !== el.scrollHeight) {
-  //   el.dataset.calculatedScrollHeight = el.scrollHeight; // adds property for debugging
-  // }
   return height;
 };
 
@@ -49,10 +45,6 @@ export const getWidth = (el) => {
     );
     width = width - paddingLeft - paddingRight - borderLeft - borderRight;
   }
-  // el.dataset.calculatedWidth = width; // adds property for debuging
-  // if (Math.ceil(width) !== el.scrollWidth) {
-  //   el.dataset.calculatedScrollWidth = el.scrollWidth; // adds property for debuging
-  // }
   return width;
 };
 
