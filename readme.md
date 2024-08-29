@@ -1,4 +1,4 @@
-[![textfitting example]("./2024-08-30 at 8.59.14 - Moccasin Pigeon.gif")](https://textfit.page.bne.sh/)
+[![textfitting example](example.gif)](https://textfit.page.bne.sh/)
 
 # textfit
 
@@ -88,8 +88,7 @@ if you want a element to be based of the hight of something else then you can us
 `self` Checks if the element's scroll height is larger than its height. This is a classic overflow where scroll bars would appear.
 
 ```html
-<text-fit max-height="innerbox">
-    <i class='icon'/>
+<text-fit max-height="self">
     max height based on bounding box of the element inside 
 </text-fit>
 ```
@@ -121,7 +120,7 @@ you can use both max-height and max-lines together. This will allow you to set a
 
 ```html
 <h2 style="background: red; height: 50vh; ">
-  <text-fit max-lines="3" max-font-size="2000" max-height='parent' >
+  <text-fit max-lines="3" max-font-size="2000" max-height='outerbox' >
   hey there i am samuel
   </text-fit>
 </h2>
