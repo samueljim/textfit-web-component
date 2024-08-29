@@ -1,4 +1,4 @@
-[![textfitting example](https://i.ibb.co/Hx8PLV6/demo.gif)](https://textfit.page.bne.sh/)
+[![textfitting example](./2024-08-30 at 8.59.14 - Moccasin Pigeon.gif)](https://textfit.page.bne.sh/)
 
 # textfit
 
