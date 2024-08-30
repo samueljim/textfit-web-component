@@ -179,7 +179,7 @@ export const checkOverflow = (element, maxHeightMode) => {
       return true
     }
     return false
-  } else if (maxHeightMode === "self" || isNaN(maxHeightMode)) {
+  } else if (maxHeightMode === "self") {
     // Check that the max scrollHeight is not larger than its measured height. 
     let scrollHeight = Math.ceil(element.scrollHeight);
     element.dataset.calculatedScrollHeight = scrollHeight;
@@ -187,7 +187,23 @@ export const checkOverflow = (element, maxHeightMode) => {
       return true
     }
     return false
-  } else {
+  } else if (maxHeightMode === "onScreen") {
+    // check that the element is not clipping the edges of the screen
+    const rect = element.getBoundingClientRect();
+    if (rect.bottom > window.innerHeight) {
+      return true
+    }
+    return false
+  } else if (maxHeightMode.endsWith("%")) {
+    // make it so the element is at most a % of the screen height
+    let viewportHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+    let scrollHeight = Math.ceil(element.scrollHeight);
+    element.dataset.calculatedScrollHeight = scrollHeight;
+    if (scrollHeight > Math.ceil(viewportHeight * parseFloat(maxHeightMode.replace("%", "")) / 100)) {
+      return true
+    }
+    return false
+  } else if (!isNaN(maxHeightMode)) {
     // assume it is a number and use it as the max height
     let scrollHeight = Math.ceil(element.scrollHeight);
     element.dataset.calculatedScrollHeight = scrollHeight;
