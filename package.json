@@ -1,6 +1,6 @@
 {
   "name": "textfit-web-component",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Framework agnostic text fitting web component that can be used to ensure that a number of lines of text is rendered on screen by reducing or increasing font size and also help users detect and handle text with overflows. This also is a very functional line counting algorithm in order to determine how many lines of text is on the screen after rendering without the issues that other line counting algorithms have because of fonts having different metrics",
   "main": "textfit.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/samueljim/textfit-web-component.git"
+    "url": "git+https://github.com/samueljim/textfit-web-component.git"
   },
   "type": "module",
   "keywords": [
@@ -26,5 +26,6 @@
     "fittext"
   ],
   "author": "samueljim",
-  "license": "ISC"
+  "license": "ISC",
+  "readme": "README.md"
 }
