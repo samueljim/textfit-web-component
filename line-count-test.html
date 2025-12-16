@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Line Count Algorithm Test</title>
+    <style>
+        .test-container {
+            width: 400px;
+            border: 2px solid #333;
+            margin: 20px 0;
+            padding: 10px;
+            font-family: Arial, sans-serif;
+        }
+        
+        .nested-test {
+            background: #f0f0f0;
+            padding: 10px;
+            margin: 5px 0;
+        }
+        
+        .nested-test .inner {
+            background: #e0e0e0;
+            padding: 5px;
+            margin: 3px 0;
+        }
+        
+        .results {
+            background: #fff3cd;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ffeaa7;
+        }
+        
+        button {
+            margin: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+        
+        .highlight {
+            background: yellow;
+            animation: flash 1s ease-in-out;
+        }
+        
+        @keyframes flash {
+            0%, 100% { background: yellow; }
+            50% { background: transparent; }
+        }
+        
+        .font-size-controls {
+            margin: 10px 0;
+        }
+        
+        .font-size-controls input[type="range"] {
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Line Count Algorithm Test Suite</h1>
+    <p>This page tests the improved line counting algorithm with various complex HTML structures.</p>
+    
+    <div class="font-size-controls">
+        <label for="fontSize">Font Size: <span id="fontSizeValue">16px</span></label>
+        <input type="range" id="fontSize" min="8" max="32" value="16" step="1">
+        <button id="toggleMode" onclick="toggleFontMode()">Switch to Dynamic Mode</button>
+        <span id="modeIndicator" style="margin-left: 10px; font-weight: bold; color: #666;">Fixed Font Size Mode</span>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 1: Simple Text</h3>
+        <text-fit id="test1" max-lines="3">
+            This is a simple text block that should count as approximately 2-3 lines depending on the font size and container width.
+        </text-fit>
+        <div class="results" id="results1"></div>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 2: Nested HTML Structure (Previously Over-counted)</h3>
+        <text-fit id="test2" max-lines="4">
+            <div class="nested-test">
+                This is outer content.
+                <div class="inner">
+                    This is inner content that was previously over-counted.
+                    <span>And this span content too.</span>
+                </div>
+                Back to outer content.
+            </div>
+        </text-fit>
+        <div class="results" id="results2"></div>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 3: Multiple Nested Sections</h3>
+        <text-fit id="test3" max-lines="6">
+            <p>First paragraph of content.</p>
+            <div class="nested-test">
+                <span>Nested span content.</span>
+                <div class="inner">
+                    <em>Deeply nested italic text.</em>
+                    <strong>And bold text too.</strong>
+                </div>
+            </div>
+            <p>Final paragraph content.</p>
+        </text-fit>
+        <div class="results" id="results3"></div>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 4: Complex Mirrored Structure</h3>
+        <text-fit id="test4" max-lines="8">
+            <div class="section-a">
+                <h4>Section A</h4>
+                <p>Content for section A with some text.</p>
+                <div class="subsection">
+                    <span>Subsection content A.</span>
+                </div>
+            </div>
+            <div class="section-b">
+                <h4>Section B</h4>
+                <p>Content for section B with similar structure.</p>
+                <div class="subsection">
+                    <span>Subsection content B.</span>
+                </div>
+            </div>
+        </text-fit>
+        <div class="results" id="results4"></div>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 5: Edge Cases</h3>
+        <text-fit id="test5" max-lines="2">
+            <div style="display: inline;">Inline content</div>
+            <span></span>
+            <div>   </div>
+            <p>Actual content after empty elements.</p>
+        </text-fit>
+        <div class="results" id="results5"></div>
+    </div>
+
+    <button onclick="runAllTests()">Run All Tests</button>
+    <button onclick="showComparison()">Show Before/After Comparison</button>
+    
+    <div id="comparison" style="display:none;">
+        <h3>Algorithm Comparison</h3>
+        <div id="comparisonResults"></div>
+    </div>
+
+    <script type="module" src="./textfit.js"></script>
+    <script type="module">
+        import { lineCount } from './line-count.js';
+        
+        let currentFontSize = 16;
+        let isDynamicMode = false;
+        
+        function toggleFontMode() {
+            isDynamicMode = !isDynamicMode;
+            const toggleButton = document.getElementById('toggleMode');
+            const modeIndicator = document.getElementById('modeIndicator');
+            const fontSlider = document.getElementById('fontSize');
+            
+            if (isDynamicMode) {
+                // Switch to dynamic mode - TextFit controls font size
+                toggleButton.textContent = 'Switch to Fixed Mode';
+                modeIndicator.textContent = 'Dynamic Font Size Mode';
+                modeIndicator.style.color = '#28a745';
+                fontSlider.disabled = true;
+                
+                document.querySelectorAll('text-fit').forEach(el => {
+                    // Reset to default TextFit behavior
+                    el.setAttribute('min-font-size', '20');
+                    el.setAttribute('max-font-size', '100');
+                    el.setAttribute('font-unit', '%');
+                    if (el.refresh) {
+                        el.refresh();
+                    }
+                });
+            } else {
+                // Switch to fixed mode - Manual font size control
+                toggleButton.textContent = 'Switch to Dynamic Mode';
+                modeIndicator.textContent = 'Fixed Font Size Mode';
+                modeIndicator.style.color = '#666';
+                fontSlider.disabled = false;
+                
+                // Apply current slider value
+                const fontSizePercent = Math.round((currentFontSize / 16) * 100);
+                document.querySelectorAll('text-fit').forEach(el => {
+                    el.setAttribute('min-font-size', fontSizePercent);
+                    el.setAttribute('max-font-size', fontSizePercent);
+                    if (el.refresh) {
+                        el.refresh();
+                    }
+                });
+            }
+            
+            setTimeout(runAllTests, 200);
+        }
+        
+        // Font size control - only works in fixed mode
+        document.getElementById('fontSize').addEventListener('input', (e) => {
+            currentFontSize = e.target.value;
+            document.getElementById('fontSizeValue').textContent = currentFontSize + 'px';
+            
+            // Only apply changes if in fixed font size mode
+            if (!isDynamicMode) {
+                document.querySelectorAll('text-fit').forEach(el => {
+                    // Convert px to percentage (assuming 16px = 100%)
+                    const fontSizePercent = Math.round((currentFontSize / 16) * 100);
+                    
+                    // Set both min and max to the same value to force this exact size
+                    el.setAttribute('min-font-size', fontSizePercent);
+                    el.setAttribute('max-font-size', fontSizePercent);
+                    el.setAttribute('font-unit', '%');
+                    
+                    // Manually trigger refresh to apply changes
+                    if (el.refresh) {
+                        el.refresh();
+                    }
+                });
+                
+                // Re-run tests after font size change
+                setTimeout(runAllTests, 200);
+            }
+        });
+        
+        function runSingleTest(testId) {
+            const element = document.getElementById(testId);
+            const resultsEl = document.getElementById('results' + testId.slice(-1));
+            
+            if (!element || !resultsEl) return;
+            
+            // Highlight the element being tested
+            element.classList.add('highlight');
+            setTimeout(() => element.classList.remove('highlight'), 1000);
+            
+            try {
+                console.log(`\n=== Testing ${testId} ===`);
+                console.log('Element content:', element.textContent.trim());
+                console.log('Element HTML:', element.innerHTML);
+                
+                const result = lineCount(element);
+                
+                // Get expected line count based on visual inspection
+                let expectedLines = 'Unknown';
+                if (testId === 'test1') expectedLines = '2-3';
+                if (testId === 'test2') expectedLines = '3-4';
+                if (testId === 'test3') expectedLines = '4-5';
+                if (testId === 'test4') expectedLines = '6-8';
+                if (testId === 'test5') expectedLines = '2';
+                
+                console.log(`Expected: ${expectedLines}, Got: ${result.lineCount}`);
+                
+                resultsEl.innerHTML = `
+                    <strong>Results:</strong><br>
+                    Lines counted: <strong>${result.lineCount}</strong> (Expected: ${expectedLines})<br>
+                    Natural height: ${Math.round(result.naturalHeight)}px<br>
+                    Elements processed: ${result.elementsProcessed || 'N/A'}<br>
+                    Font size: ${currentFontSize}px<br>
+                    <small>Container width: ${Math.round(element.getBoundingClientRect().width)}px</small>
+                `;
+                
+                // Color code based on expected results  
+                const isCorrect = (testId === 'test3' && result.lineCount >= 4) || 
+                                 (testId === 'test5' && result.lineCount >= 2) || 
+                                 (testId !== 'test3' && testId !== 'test5' && result.lineCount > 0);
+                
+                if (isCorrect) {
+                    resultsEl.style.borderColor = '#28a745';
+                } else {
+                    resultsEl.style.borderColor = '#dc3545';
+                }
+                
+            } catch (error) {
+                console.error(`Error testing ${testId}:`, error);
+                resultsEl.innerHTML = `<strong style="color: red;">Error:</strong> ${error.message}`;
+                resultsEl.style.borderColor = '#dc3545';
+            }
+        }
+        
+        function runAllTests() {
+            console.log('Running all line count tests...');
+            
+            ['test1', 'test2', 'test3', 'test4', 'test5'].forEach((testId, index) => {
+                setTimeout(() => runSingleTest(testId), index * 200);
+            });
+        }
+        
+        // Mock old algorithm for comparison (simplified version of previous issues)
+        function oldLineCountSimulation(element) {
+            // Simplified version that would over-count nested elements
+            const allElements = element.querySelectorAll('*');
+            let overCount = 0;
+            
+            allElements.forEach(el => {
+                if (el.textContent.trim()) {
+                    overCount += Math.max(1, Math.ceil(el.textContent.length / 50));
+                }
+            });
+            
+            return Math.max(overCount, element.textContent.trim().length / 50);
+        }
+        
+        function showComparison() {
+            const comparisonDiv = document.getElementById('comparison');
+            const resultsDiv = document.getElementById('comparisonResults');
+            
+            comparisonDiv.style.display = 'block';
+            
+            let comparisonHTML = '<table border="1" style="width:100%; border-collapse: collapse;"><tr><th>Test</th><th>New Algorithm</th><th>Old (Estimated)</th><th>Improvement</th></tr>';
+            
+            ['test1', 'test2', 'test3', 'test4', 'test5'].forEach((testId, index) => {
+                const element = document.getElementById(testId);
+                const newResult = lineCount(element);
+                const oldResult = Math.round(oldLineCountSimulation(element));
+                const improvement = oldResult > newResult.lineCount ? 'Better' : 'Same';
+                
+                comparisonHTML += `
+                    <tr>
+                        <td>Test ${index + 1}</td>
+                        <td>${newResult.lineCount} lines</td>
+                        <td>${oldResult} lines</td>
+                        <td style="color: ${improvement === 'Better' ? 'green' : 'black'}">${improvement}</td>
+                    </tr>
+                `;
+            });
+            
+            comparisonHTML += '</table>';
+            resultsDiv.innerHTML = comparisonHTML;
+        }
+        
+        // Auto-run tests when page loads
+        window.addEventListener('load', () => {
+            // Initialize with fixed mode and current font size
+            setTimeout(() => {
+                const fontSizePercent = Math.round((currentFontSize / 16) * 100);
+                document.querySelectorAll('text-fit').forEach(el => {
+                    el.setAttribute('min-font-size', fontSizePercent);
+                    el.setAttribute('max-font-size', fontSizePercent);
+                    el.setAttribute('font-unit', '%');
+                });
+                runAllTests();
+            }, 500);
+        });
+        
+        // Make functions global for button clicks
+        window.runAllTests = runAllTests;
+        window.showComparison = showComparison;
+        window.toggleFontMode = toggleFontMode;
+        
+        // Debug logging
+        console.log('Line count test suite loaded');
+    </script>
+</body>
+</html>

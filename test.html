@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TextFit Test</title>
+    <style>
+        .container {
+            width: 300px;
+            height: 100px;
+            border: 2px solid #333;
+            margin: 20px;
+            resize: both;
+            overflow: auto;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+        }
+        
+        button {
+            margin: 5px;
+            padding: 10px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        textarea, input[type="text"] {
+            margin: 5px 0;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+        
+        text-fit[contenteditable="true"] {
+            cursor: text;
+        }
+        
+        text-fit[contenteditable="true"]:focus {
+            outline: 2px solid #007bff;
+        }
+        
+        #paragraphCount {
+            margin-left: 10px;
+            font-weight: bold;
+            color: #666;
+        }
+        
+        .test-section h4 {
+            margin: 10px 0 5px 0;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+        
+        .test-section > div[style*="grid"] {
+            margin: 15px 0;
+        }
+        
+        .test-section > div[style*="grid"] .container {
+            margin: 5px 0;
+            min-height: 60px;
+        }
+        
+        text-fit[debug-overflow-error] {
+            transition: all 0.3s ease;
+        }
+        
+        /* Highlight different font units */
+        text-fit[font-unit="px"] {
+            border-left: 4px solid #3498db;
+        }
+        
+        text-fit[font-unit="em"] {
+            border-left: 4px solid #e74c3c;
+        }
+        
+        text-fit[font-unit="rem"] {
+            border-left: 4px solid #27ae60;
+        }
+        
+        text-fit[font-unit="%"] {
+            border-left: 4px solid #f39c12;
+        }
+        
+        /* Special styling for attribute tests */
+        text-fit[width-only] {
+            background: linear-gradient(90deg, rgba(52, 152, 219, 0.1) 0%, transparent 100%);
+        }
+        
+        text-fit[dont-grow-in-height] {
+            background: linear-gradient(180deg, rgba(231, 76, 60, 0.1) 0%, transparent 100%);
+        }
+        
+        text-fit[disable-dynamic-font-size] {
+            background: linear-gradient(45deg, rgba(155, 89, 182, 0.1) 0%, transparent 100%);
+        }
+    </style>
+</head>
+<body>
+    <h1>TextFit Web Component Test</h1>
+    
+    <div class="test-section">
+        <h3>Resize Test (drag the corner of the box)</h3>
+        <div class="container">
+            <text-fit max-lines="3" debounce-time="50">
+                This is a test of the TextFit web component. Try resizing the container to see how the text automatically adjusts its size to fit within the constraints.
+            </text-fit>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Dynamic Content Test</h3>
+        <div class="container">
+            <text-fit id="dynamic-content" max-lines="2" debounce-time="50">
+                Original content that will change
+            </text-fit>
+        </div>
+        <button onclick="changeContent()">Change Content</button>
+        <button onclick="refreshTextFit()">Refresh TextFit</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>Window Resize Test</h3>
+        <div style="width: 50vw; height: 100px; border: 2px solid #666;">
+            <text-fit max-lines="2" debounce-time="100">
+                This text should resize when you resize the browser window. The component now properly handles window resize events!
+            </text-fit>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>Editable Text Test - Type Anything!</h3>
+        <textarea id="editableText" rows="3" cols="50" placeholder="Type text here and click 'Update TextFit'">
+This is editable text. Change me and see how TextFit adapts! Try writing a really long sentence to see how it adjusts the font size to fit within the constraints.
+        </textarea>
+        <button onclick="updateEditableText()">Update TextFit</button>
+        <div class="container">
+            <text-fit id="editable-textfit" max-lines="3" debounce-time="50">
+                This is editable text. Change me and see how TextFit adapts! Try writing a really long sentence to see how it adjusts the font size to fit within the constraints.
+            </text-fit>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>Live Typing Test - contenteditable</h3>
+        <p>Click in the box below and type directly:</p>
+        <div class="container">
+            <text-fit contenteditable="true" max-lines="2" debounce-time="100" style="min-height: 60px; padding: 10px; outline: 2px dashed #ccc;">
+                Click here and start typing to see real-time text fitting!
+            </text-fit>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>Height Constraint Test</h3>
+        <p>This TextFit is constrained by height instead of lines:</p>
+        <div style="width: 400px; height: 120px; border: 2px solid #e74c3c;">
+            <text-fit max-height="120px" debounce-time="50">
+                This text is constrained by maximum height rather than line count. As you add more content, the font size will shrink to fit within the 120px height limit.
+            </text-fit>
+        </div>
+        <textarea id="heightText" rows="2" cols="50" placeholder="Add more text">
+This text is constrained by maximum height rather than line count. As you add more content, the font size will shrink to fit within the 120px height limit.
+        </textarea>
+        <button onclick="updateHeightText()">Update Height-Constrained Text</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Single Line Test</h3>
+        <p>Force text to fit on exactly one line:</p>
+        <div class="container">
+            <text-fit id="single-line" max-lines="1" debounce-time="50">
+                This must fit on one line no matter how long it gets!
+            </text-fit>
+        </div>
+        <input type="text" id="singleLineInput" style="width: 100%;" 
+               placeholder="Type text for single-line fitting" 
+               value="This must fit on one line no matter how long it gets!"
+               oninput="updateSingleLine()">
+    </div>
+
+    <div class="test-section">
+        <h3>Dynamic Content Addition</h3>
+        <div class="container">
+            <text-fit id="dynamic-addition" max-lines="4" debounce-time="50">
+                <p>Paragraph 1: Base content</p>
+            </text-fit>
+        </div>
+        <button onclick="addParagraph()">Add Paragraph</button>
+        <button onclick="removeParagraph()">Remove Paragraph</button>
+        <button onclick="addRandomSentence()">Add Random Sentence</button>
+        <span id="paragraphCount">Paragraphs: 1</span>
+    </div>
+
+    <div class="test-section">
+        <h3>Extreme Content Test</h3>
+        <div class="container">
+            <text-fit id="extreme-content" max-lines="3" debounce-time="50">
+                Normal length text
+            </text-fit>
+        </div>
+        <button onclick="setShortText()">Short Text</button>
+        <button onclick="setMediumText()">Medium Text</button>
+        <button onclick="setLongText()">Long Text</button>
+        <button onclick="setExtremeText()">Extremely Long Text</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Mixed Font Families Test</h3>
+        <div class="container">
+            <text-fit max-lines="3" debounce-time="50">
+                <span style="font-family: Arial;">This text is in Arial.</span>
+                <span style="font-family: Times, serif;">This text is in Times.</span>
+                <span style="font-family: 'Courier New', monospace;">This text is in Courier.</span>
+                <span style="font-family: Georgia, serif;">And this is Georgia font.</span>
+            </text-fit>
+        </div>
+        <button onclick="addMixedFontText()">Add Random Font</button>
+        <button onclick="resetMixedFonts()">Reset Fonts</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Mixed Font Sizes Test</h3>
+        <div class="container">
+            <text-fit max-lines="4" debounce-time="50">
+                <span style="font-size: 1.2em;">Large text</span>
+                <span style="font-size: 1em;">normal text</span>
+                <span style="font-size: 0.8em;">small text</span>
+                <span style="font-size: 1.5em;">extra large</span>
+                and some regular text mixed in between all these different sizes.
+            </text-fit>
+        </div>
+        <button onclick="randomizeFontSizes()">Randomize Sizes</button>
+        <button onclick="addSizeVariation()">Add Size Variation</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Mixed Line Heights Test</h3>
+        <div class="container">
+            <text-fit max-lines="4" debounce-50">
+                <p style="line-height: 1.2;">This paragraph has tight line spacing (1.2).</p>
+                <p style="line-height: 1.8;">This paragraph has loose line spacing (1.8).</p>
+                <p style="line-height: 2.5;">This paragraph has very loose line spacing (2.5).</p>
+                <span style="line-height: 1;">Tight span</span> and <span style="line-height: 2;">loose span</span>.
+            </text-fit>
+        </div>
+        <button onclick="randomizeLineHeights()">Randomize Line Heights</button>
+        <button onclick="toggleLineHeightMode()">Toggle Extreme Mode</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Font Unit Tests (%, px, em, rem)</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <h4>Percentage Units (%)</h4>
+                <div class="container">
+                    <text-fit max-lines="2" font-unit="%" min-font-size="50" max-font-size="150">
+                        Text using percentage units for font sizing
+                    </text-fit>
+                </div>
+            </div>
+            <div>
+                <h4>Pixel Units (px)</h4>
+                <div class="container">
+                    <text-fit max-lines="2" font-unit="px" min-font-size="10" max-font-size="24">
+                        Text using pixel units for font sizing
+                    </text-fit>
+                </div>
+            </div>
+            <div>
+                <h4>Em Units (em)</h4>
+                <div class="container">
+                    <text-fit max-lines="2" font-unit="em" min-font-size="0.8" max-font-size="2.0">
+                        Text using em units for font sizing
+                    </text-fit>
+                </div>
+            </div>
+            <div>
+                <h4>Rem Units (rem)</h4>
+                <div class="container">
+                    <text-fit max-lines="2" font-unit="rem" min-font-size="0.8" max-font-size="2.0">
+                        Text using rem units for font sizing
+                    </text-fit>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>All Attributes Combination Test</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            
+            <div>
+                <h4>Width Only Mode</h4>
+                <div class="container">
+                    <text-fit width-only max-lines="3">
+                        This TextFit only adjusts for width, not height constraints
+                    </text-fit>
+                </div>
+            </div>
+
+            <div>
+                <h4>Don't Grow in Height</h4>
+                <div class="container">
+                    <text-fit dont-grow-in-height max-lines="3">
+                        This TextFit won't grow taller than its initial height
+                    </text-fit>
+                </div>
+            </div>
+
+            <div>
+                <h4>Disabled Dynamic Font Size</h4>
+                <div class="container">
+                    <text-fit disable-dynamic-font-size max-lines="3">
+                        This TextFit keeps original font size, only counts lines
+                    </text-fit>
+                </div>
+            </div>
+
+            <div>
+                <h4>High Debounce Time</h4>
+                <div class="container">
+                    <text-fit contenteditable="true" debounce-time="1000" max-lines="2">
+                        Type here - 1 second delay
+                    </text-fit>
+                </div>
+            </div>
+
+            <div>
+                <h4>Strict Font Size Range</h4>
+                <div class="container">
+                    <text-fit min-font-size="80" max-font-size="90" font-unit="%" max-lines="3">
+                        Very narrow font size range (80%-90%)
+                    </text-fit>
+                </div>
+            </div>
+
+            <div>
+                <h4>Combined Constraints</h4>
+                <div style="height: 80px;" class="container">
+                    <text-fit max-lines="2" max-height="80px" min-font-size="60" max-font-size="120">
+                        Both line and height constraints with font limits
+                    </text-fit>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>Advanced Mixed Styling Test</h3>
+        <div class="container">
+            <text-fit id="advanced-mixed" max-lines="5" debounce-time="50">
+                <h4 style="font-family: Georgia; color: #2c3e50; margin: 0;">Title in Georgia</h4>
+                <p style="font-family: Arial; line-height: 1.3; font-size: 0.9em; color: #34495e;">
+                    This paragraph uses Arial with custom line-height and smaller font size.
+                </p>
+                <span style="font-family: 'Courier New'; background: #ecf0f1; padding: 2px; font-size: 0.8em;">code snippet</span>
+                <em style="font-family: Times; font-size: 1.1em; color: #e74c3c;">emphasized text in Times</em>
+                <strong style="font-family: Verdana; font-size: 1.2em; color: #27ae60;">bold Verdana text</strong>
+            </text-fit>
+        </div>
+        <button onclick="shuffleAdvancedStyles()">Shuffle Styles</button>
+        <button onclick="addComplexElement()">Add Complex Element</button>
+        <button onclick="resetAdvancedTest()">Reset</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Overflow Error Display Test</h3>
+        <div class="container">
+            <text-fit log-overflow-error debug-overflow-error max-lines="2" debounce-time="50">
+                This text will show overflow errors when it exceeds 2 lines. Try adding more content to trigger the error display.
+            </text-fit>
+        </div>
+        <button onclick="triggerOverflow()">Trigger Overflow</button>
+        <button onclick="clearOverflow()">Clear Overflow</button>
+    </div>
+
+    <script type="module" src="./textfit.js"></script>
+    <script>
+        let contentCounter = 1;
+        
+        function changeContent() {
+            const element = document.getElementById('dynamic-content');
+            contentCounter++;
+            element.textContent = `Dynamic content #${contentCounter} - This text changes to test the MutationObserver and automatic revalidation when content changes programmatically.`;
+        }
+        
+        function refreshTextFit() {
+            const element = document.getElementById('dynamic-content');
+            element.refresh();
+            console.log('TextFit refreshed manually');
+        }
+        
+        // Test the new API methods
+        window.addEventListener('load', () => {
+            const textfitElements = document.querySelectorAll('text-fit');
+            textfitElements.forEach((el, index) => {
+                console.log(`TextFit ${index + 1}:`, {
+                    lineCount: el.lineCount,
+                    height: el.height,
+                    width: el.width,
+                    overflowStatus: el.overflowStatus
+                });
+            });
+        });
+        
+        // Monitor resize events
+        let resizeCount = 0;
+        window.addEventListener('resize', () => {
+            resizeCount++;
+            console.log(`Window resize event #${resizeCount}`);
+        });
+
+        // Interactive test functions
+        function updateEditableText() {
+            const textarea = document.getElementById('editableText');
+            const textfit = document.getElementById('editable-textfit');
+            textfit.textContent = textarea.value;
+            console.log('Updated editable TextFit with new content');
+        }
+
+        function updateHeightText() {
+            const textarea = document.getElementById('heightText');
+            const textfit = document.querySelector('[max-height="120px"]');
+            textfit.textContent = textarea.value;
+            console.log('Updated height-constrained TextFit');
+        }
+
+        function updateSingleLine() {
+            const input = document.getElementById('singleLineInput');
+            const textfit = document.getElementById('single-line');
+            textfit.textContent = input.value;
+        }
+
+        let paragraphCounter = 1;
+        function addParagraph() {
+            const textfit = document.getElementById('dynamic-addition');
+            paragraphCounter++;
+            const newParagraph = document.createElement('p');
+            newParagraph.textContent = `Paragraph ${paragraphCounter}: Added dynamically with some sample content to test fitting.`;
+            textfit.appendChild(newParagraph);
+            document.getElementById('paragraphCount').textContent = `Paragraphs: ${paragraphCounter}`;
+            console.log(`Added paragraph ${paragraphCounter}`);
+        }
+
+        function removeParagraph() {
+            const textfit = document.getElementById('dynamic-addition');
+            const paragraphs = textfit.querySelectorAll('p');
+            if (paragraphs.length > 1) {
+                textfit.removeChild(paragraphs[paragraphs.length - 1]);
+                paragraphCounter--;
+                document.getElementById('paragraphCount').textContent = `Paragraphs: ${paragraphCounter}`;
+                console.log(`Removed paragraph, now have ${paragraphCounter}`);
+            }
+        }
+
+        const randomSentences = [
+            "The quick brown fox jumps over the lazy dog.",
+            "TextFit automatically adjusts font sizes to fit content constraints.",
+            "This is a randomly generated sentence for testing purposes.",
+            "Web components provide excellent encapsulation for reusable functionality.",
+            "Dynamic text fitting helps maintain consistent visual layouts.",
+            "Responsive typography adapts to different container sizes seamlessly.",
+        ];
+
+        function addRandomSentence() {
+            const textfit = document.getElementById('dynamic-addition');
+            const randomSentence = randomSentences[Math.floor(Math.random() * randomSentences.length)];
+            const textNode = document.createTextNode(' ' + randomSentence);
+            textfit.appendChild(textNode);
+            console.log(`Added random sentence: ${randomSentence}`);
+        }
+
+        // Extreme content test functions
+        function setShortText() {
+            const textfit = document.getElementById('extreme-content');
+            textfit.textContent = "Short";
+            console.log('Set short text');
+        }
+
+        function setMediumText() {
+            const textfit = document.getElementById('extreme-content');
+            textfit.textContent = "This is a medium length text that should fit comfortably within the three-line constraint while demonstrating the text fitting capabilities.";
+            console.log('Set medium text');
+        }
+
+        function setLongText() {
+            const textfit = document.getElementById('extreme-content');
+            textfit.textContent = "This is a significantly longer piece of text that will challenge the TextFit component to shrink the font size considerably in order to fit all this content within the three-line maximum constraint that has been set for this particular test case, demonstrating how the component handles substantial amounts of text.";
+            console.log('Set long text');
+        }
+
+        function setExtremeText() {
+            const textfit = document.getElementById('extreme-content');
+            textfit.textContent = "This is an extremely long piece of text that really pushes the boundaries of what the TextFit component can handle while maintaining readability and staying within the three-line constraint. It includes multiple sentences with various punctuation marks, complex words, and extended phrases designed to test the absolute limits of the text fitting algorithm's ability to compress and scale font sizes appropriately. The goal is to see how small the text can become while still technically fitting within the specified line count limitations, and whether the component can gracefully handle such excessive amounts of textual content without breaking or becoming completely illegible to users who might encounter such extreme use cases in real-world applications.";
+            console.log('Set extreme text');
+        }
+
+        // Mixed font families test functions
+        const fontFamilies = ['Arial', 'Times, serif', 'Georgia, serif', 'Verdana', '"Courier New", monospace', 'Helvetica', '"Comic Sans MS"', 'Impact'];
+        
+        function addMixedFontText() {
+            const textfit = document.querySelector('[max-lines="3"]');
+            const randomFont = fontFamilies[Math.floor(Math.random() * fontFamilies.length)];
+            const span = document.createElement('span');
+            span.style.fontFamily = randomFont;
+            span.textContent = ` Text in ${randomFont.replace(/["',]/g, '')}.`;
+            textfit.appendChild(span);
+        }
+
+        function resetMixedFonts() {
+            const textfit = document.querySelector('[max-lines="3"]');
+            textfit.innerHTML = `
+                <span style="font-family: Arial;">This text is in Arial.</span>
+                <span style="font-family: Times, serif;">This text is in Times.</span>
+                <span style="font-family: 'Courier New', monospace;">This text is in Courier.</span>
+                <span style="font-family: Georgia, serif;">And this is Georgia font.</span>
+            `;
+        }
+
+        // Mixed font sizes test functions
+        function randomizeFontSizes() {
+            const textfit = document.querySelector('[max-lines="4"]');
+            const spans = textfit.querySelectorAll('span');
+            spans.forEach(span => {
+                const size = (Math.random() * 1.5 + 0.5).toFixed(1); // 0.5 to 2.0
+                span.style.fontSize = size + 'em';
+            });
+        }
+
+        function addSizeVariation() {
+            const textfit = document.querySelector('[max-lines="4"]');
+            const size = (Math.random() * 2 + 0.5).toFixed(1);
+            const span = document.createElement('span');
+            span.style.fontSize = size + 'em';
+            span.textContent = ` Size ${size}em text.`;
+            textfit.appendChild(span);
+        }
+
+        // Mixed line heights test functions
+        let extremeLineHeightMode = false;
+        
+        function randomizeLineHeights() {
+            const textfit = document.querySelector('[max-lines="4"]').nextElementSibling?.previousElementSibling || document.querySelector('[debounce-50]').parentElement.querySelector('text-fit');
+            const elements = textfit.querySelectorAll('p, span');
+            elements.forEach(el => {
+                const lineHeight = extremeLineHeightMode ? 
+                    (Math.random() * 3 + 0.5).toFixed(1) : // 0.5 to 3.5
+                    (Math.random() * 1.5 + 1).toFixed(1);   // 1.0 to 2.5
+                el.style.lineHeight = lineHeight;
+            });
+        }
+
+        function toggleLineHeightMode() {
+            extremeLineHeightMode = !extremeLineHeightMode;
+            const button = event.target;
+            button.textContent = extremeLineHeightMode ? 'Toggle Normal Mode' : 'Toggle Extreme Mode';
+            randomizeLineHeights();
+        }
+
+        // Advanced mixed styling functions
+        function shuffleAdvancedStyles() {
+            const textfit = document.getElementById('advanced-mixed');
+            const elements = Array.from(textfit.children);
+            
+            // Shuffle the elements
+            for (let i = elements.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                textfit.insertBefore(elements[j], elements[i].nextSibling);
+            }
+        }
+
+        function addComplexElement() {
+            const textfit = document.getElementById('advanced-mixed');
+            const complexElements = [
+                '<div style="font-family: Impact; font-size: 1.3em; color: #9b59b6; text-transform: uppercase;">Impact Header</div>',
+                '<span style="font-family: Helvetica; background: linear-gradient(45deg, #ff6b6b, #4ecdc4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.1em;">Gradient Text</span>',
+                '<p style="font-family: Georgia; font-style: italic; line-height: 2; border-left: 3px solid #3498db; padding-left: 10px; font-size: 0.9em;">Styled paragraph with border</p>',
+                '<code style="font-family: monospace; background: #2c3e50; color: #ecf0f1; padding: 4px; border-radius: 3px; font-size: 0.85em;">const textfit = new TextFit();</code>'
+            ];
+            
+            const randomElement = complexElements[Math.floor(Math.random() * complexElements.length)];
+            textfit.insertAdjacentHTML('beforeend', ' ' + randomElement);
+        }
+
+        function resetAdvancedTest() {
+            const textfit = document.getElementById('advanced-mixed');
+            textfit.innerHTML = `
+                <h4 style="font-family: Georgia; color: #2c3e50; margin: 0;">Title in Georgia</h4>
+                <p style="font-family: Arial; line-height: 1.3; font-size: 0.9em; color: #34495e;">
+                    This paragraph uses Arial with custom line-height and smaller font size.
+                </p>
+                <span style="font-family: 'Courier New'; background: #ecf0f1; padding: 2px; font-size: 0.8em;">code snippet</span>
+                <em style="font-family: Times; font-size: 1.1em; color: #e74c3c;">emphasized text in Times</em>
+                <strong style="font-family: Verdana; font-size: 1.2em; color: #27ae60;">bold Verdana text</strong>
+            `;
+        }
+
+        // Overflow error test functions
+        function triggerOverflow() {
+            const textfit = document.querySelector('[log-overflow-error]');
+            textfit.textContent = "This is a very long text that will definitely exceed the two-line limit and trigger the overflow error display. The component should show a red background and error message when this happens. Keep adding more and more text to really test the overflow detection system thoroughly.";
+        }
+
+        function clearOverflow() {
+            const textfit = document.querySelector('[log-overflow-error]');
+            textfit.textContent = "This text fits within 2 lines.";
+        }
+
+        // Make all functions globally available
+        window.updateEditableText = updateEditableText;
+        window.updateHeightText = updateHeightText;
+        window.updateSingleLine = updateSingleLine;
+        window.addParagraph = addParagraph;
+        window.removeParagraph = removeParagraph;
+        window.addRandomSentence = addRandomSentence;
+        window.setShortText = setShortText;
+        window.setMediumText = setMediumText;
+        window.setLongText = setLongText;
+        window.setExtremeText = setExtremeText;
+        window.addMixedFontText = addMixedFontText;
+        window.resetMixedFonts = resetMixedFonts;
+        window.randomizeFontSizes = randomizeFontSizes;
+        window.addSizeVariation = addSizeVariation;
+        window.randomizeLineHeights = randomizeLineHeights;
+        window.toggleLineHeightMode = toggleLineHeightMode;
+        window.shuffleAdvancedStyles = shuffleAdvancedStyles;
+        window.addComplexElement = addComplexElement;
+        window.resetAdvancedTest = resetAdvancedTest;
+        window.triggerOverflow = triggerOverflow;
+        window.clearOverflow = clearOverflow;
+    </script>
+</body>
+</html>

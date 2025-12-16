@@ -44,6 +44,15 @@ const styles = css`
 `;
 
 class TextFit extends HTMLElement {
+  constructor() {
+    super();
+    // Bind methods to maintain proper 'this' context
+    this.handleResize = debounce(this.runValidation.bind(this), 100);
+    this.handleMutation = null;
+    this.resizeObserver = null;
+    this.isValidating = false;
+  }
+
   static get observedAttributes() {
     return [
       "max-lines",
@@ -67,8 +76,16 @@ class TextFit extends HTMLElement {
     * @param {Event} e - The event object.
     */
   runValidation(e) {
+    // Prevent validation if component is not connected or already running
+    if (!this.isConnected || this.isValidating) {
+      return;
+    }
+
+    // Set flag to prevent recursive calls
+    this.isValidating = true;
     this.done = false;
 
+    // Temporarily disconnect observer to prevent self-triggering
     if (this.observer) {
       this.observer.disconnect();
     }
@@ -83,7 +100,6 @@ class TextFit extends HTMLElement {
     this.maxHeight = this.getAttribute("max-height") || false;
     // how long to wait before running the validation
     this.debounceTime = parseInt(this.getAttribute("debounce-time")) || 0;
-    this.observer = false;
     this.overflow = false;
     this.dontGrowInHeight = Boolean(this.hasAttribute("dont-grow-in-height")) || false;
     this.maxFontSize = parseFloat(this.getAttribute("max-font-size")) || 100;
@@ -129,22 +145,23 @@ class TextFit extends HTMLElement {
       delete this.dataset.overflow;
     }
 
-    this.observer = new MutationObserver(
-      this.debounceTime > 0
-        ? debounce(() => {
-            this.runValidation();
-          }, this.debounceTime)
-        : () => {
-            this.runValidation();
-          }
-    );
-    this.observer.observe(this, {
-      attributes: true,
-      childList: true,
-      subtree: true,
-      characterData: true,
-    });
-    this.done = true; // this is so we can the page can check if it is done running
+    // Reconnect observer after changes are done
+    if (this.observer && this.isConnected) {
+      // Use setTimeout to avoid immediate re-triggering from our own changes
+      setTimeout(() => {
+        if (this.observer && this.isConnected && !this.isValidating) {
+          this.observer.observe(this, {
+            attributes: false, // Don't watch attributes to prevent self-triggering
+            childList: true,   // Watch for added/removed nodes
+            subtree: true,     // Watch all descendants  
+            characterData: true // Watch for text content changes (typing)
+          });
+        }
+      }, 10);
+    }
+
+    this.done = true;
+    this.isValidating = false; // Reset flag
   }
   get lineCount() {
     return lineCount(this).lineCount;
@@ -154,6 +171,21 @@ class TextFit extends HTMLElement {
   }
   get width() {
     return getWidth(this);
+  }
+  
+  /**
+   * Manually trigger text fitting validation
+   * Useful for when content changes programmatically
+   */
+  refresh() {
+    this.runValidation();
+  }
+  
+  /**
+   * Get the current overflow status
+   */
+  get overflowStatus() {
+    return this.overflow || null;
   }
   addClassNames() {
     if (this.hasAttribute("classname")) {
@@ -175,22 +207,86 @@ class TextFit extends HTMLElement {
     this.classList.add(styles);
     this.addClassNames();
 
-    document.fonts.ready.then((v) => {
+    // Initialize observers once
+    this.initializeObservers();
+
+    // Handle font loading and initial validation
+    Promise.all([
+      document.fonts.ready,
+      new Promise(resolve => {
+        if (document.readyState === 'complete') {
+          resolve();
+        } else {
+          window.addEventListener('load', resolve, { once: true });
+        }
+      })
+    ]).then(() => {
       this.runValidation();
-      window.addEventListener("resize", this.runValidation.bind(this));
+      
+      // Add window resize listener for all browsers (ResizeObserver only watches element, not window)
+      window.addEventListener("resize", this.handleResize);
     });
+  }
+
+  initializeObservers() {
+    // Setup mutation observer with proper debouncing
+    this.handleMutation = debounce(() => {
+      if (!this.isValidating) {
+        this.runValidation();
+      }
+    }, this.debounceTime || 50); // Shorter debounce for better typing responsiveness
+    
+    this.observer = new MutationObserver(this.handleMutation);
+    
+    // Start observing immediately for text changes
+    this.observer.observe(this, {
+      attributes: false, // Don't watch attributes to prevent self-triggering
+      childList: true,   // Watch for added/removed nodes
+      subtree: true,     // Watch all descendants
+      characterData: true // Watch for text content changes (important for typing)
+    });
+    
+    // Setup ResizeObserver for better resize handling
+    if (window.ResizeObserver) {
+      this.resizeObserver = new ResizeObserver(
+        debounce((entries) => {
+          // Only run validation if not currently validating
+          if (!this.isValidating) {
+            for (let entry of entries) {
+              if (entry.target === this) {
+                this.runValidation();
+                break;
+              }
+            }
+          }
+        }, 100)
+      );
+      this.resizeObserver.observe(this);
+    }
   }
   attributeChangedCallback(name) {
     if (name === "classname") {
       this.addClassNames();
     }
-    this.runValidation();
+    // Only run validation if not currently validating and component is connected
+    if (!this.isValidating && this.isConnected) {
+      this.runValidation();
+    }
   }
   disconnectedCallback() {
+    // Clean up all observers and event listeners
     if (this.observer) {
       this.observer.disconnect();
+      this.observer = null;
     }
-    window.removeEventListener("resize", this.runValidation.bind(this));
+    
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    }
+    
+    // Remove window resize listener (use the same bound function)
+    window.removeEventListener("resize", this.handleResize);
   }
 }
 
